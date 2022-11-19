@@ -84,34 +84,34 @@ void *thread_task(void *arg) {
     pthread_barrier_wait(&barrier);
 
     //incepe reduce
-    if (ID >= P) {
-        int *partial_reduced = calloc(MAX_SIZE, sizeof(int));
-        int count = 0;
-        for (int i = 0; i < args->M; i++) {
-            for (int k = 0; k < index_record[args->id + 2]; k++) {
-                int found = 0;
-                for (int j = 0; j < count; j++) {
-                    if(partial_reduced[j] == args->partial_lists[i][args->id + 2][k]) {
-                        //pthread_mutex_lock(&mutex);
-                        found = 1;
-                        j = count;
-                        //pthread_mutex_unlock(&mutex);
-                    }
-                }
-                if(!found) {
+    
+    int *partial_reduced = calloc(MAX_SIZE, sizeof(int));
+    int count = 0;
+    for (int i = 0; i < args->M; i++) {
+        for (int k = 0; k < index_record[args->id + 2]; k++) {
+            int found = 0;
+            for (int j = 0; j < count; j++) {
+                if(partial_reduced[j] == args->partial_lists[i][args->id + 2][k]) {
                     //pthread_mutex_lock(&mutex);
-                    partial_reduced[count] = args->partial_lists[i][args->id + 2][k];
-                    count++;
+                    found = 1;
+                    j = count;
                     //pthread_mutex_unlock(&mutex);
                 }
             }
+            if(!found) {
+                //pthread_mutex_lock(&mutex);
+                partial_reduced[count] = args->partial_lists[i][args->id + 2][k];
+                count++;
+                //pthread_mutex_unlock(&mutex);
+            }
         }
-        char out[NAME_SIZE];
-        sprintf(out, "out%d.txt", args->id + 2);
-        FILE* output = fopen(out, "w");
-        fprintf(output, "%d\n", count);
-        fclose(output);
     }
+    char out[NAME_SIZE];
+    sprintf(out, "out%d.txt", args->id + 2);
+    FILE* output = fopen(out, "w");
+    fprintf(output, "%d\n", count);
+    fclose(output);
+
     
 
     pthread_exit(NULL);

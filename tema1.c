@@ -15,6 +15,7 @@ typedef struct {
     char **file_names;
     int file_number, max_exp, num_threads, id, M;
     int ***partial_lists;
+    int **index_record_mat;
 } Arguments;
 
 int min(int a, int b) {
@@ -33,7 +34,8 @@ void *thread_task(void *arg) {
     int start = ID * (double)N / P;
     int end = min((ID + 1) * (double)N / P, N);
 
-    int *index_record = calloc(args->max_exp + 2, sizeof(int));
+    //aici da seg dar nu prea inteleg dc
+    int *index_record = (args->index_record_mat)[ID];
     if (ID < P) {
         for (int i = start; i < end; i++) {
             FILE* input = fopen(args->file_names[i], "r");
@@ -92,7 +94,7 @@ void *thread_task(void *arg) {
     int *partial_reduced = calloc(MAX_SIZE, sizeof(int));
     int count = 0;
     for (int i = 0; i < args->M; i++) {
-        for (int k = 0; k < index_record[args->id + 2]; k++) {
+        for (int k = 0; k < (args->index_record_mat)[i][args->id + 2]; k++) {
             int found = 0;
             for (int j = 0; j < count; j++) {
                 if(partial_reduced[j] == args->partial_lists[i][args->id + 2][k]) {
@@ -153,6 +155,7 @@ int main(int argc, char* argv[]) {
     }
 
 
+
     fscanf(in, "%d", &file_number);
     for (int i = 0; i < file_number; i++) {
         fscanf(in, "%s", file_names[i]);
@@ -161,6 +164,14 @@ int main(int argc, char* argv[]) {
     int max_exp = R + 1;
     int num_threads = max(M, R);
     pthread_t threads[num_threads];
+
+
+    
+    //index record
+    int** index_record_mat = calloc(num_threads, sizeof(int*));
+    for (int i = 0; i < num_threads; i++){
+        index_record_mat[i] = calloc(max_exp + 2, sizeof(int));
+    }
 
     //int partial_lists[M][max_exp + 2][MAX_SIZE];
 
@@ -189,6 +200,7 @@ int main(int argc, char* argv[]) {
         args[i].max_exp = max_exp;
         args[i].num_threads = num_threads;
         args[i].partial_lists = (int***)partial_lists;
+        args->index_record_mat = index_record_mat;
 
         r = pthread_create(&threads[i], NULL, thread_task, &args[i]);
         if (r) {

@@ -6,7 +6,7 @@
 
 #define NAME_SIZE 40
 #define MAX_FILE_NO 3000
-#define MAX_SIZE 500000
+#define MAX_SIZE 500002
 
 pthread_barrier_t barrier;
 pthread_mutex_t mutex;
@@ -34,8 +34,8 @@ void *thread_task(void *arg) {
     int start = ID * (double)N / P;
     int end = min((ID + 1) * (double)N / P, N);
 
-    //aici da seg dar nu prea inteleg dc
-    int *index_record = (args->index_record_mat)[ID];
+    
+    int *index_record = (int*)(args->index_record_mat)[ID];
     if (ID < P) {
         for (int i = start; i < end; i++) {
             FILE* input = fopen(args->file_names[i], "r");
@@ -56,7 +56,7 @@ void *thread_task(void *arg) {
                                 //pthread_mutex_lock(&mutex);
                                 args->partial_lists[ID][q][index_record[q]] = crt_number;
                                 
-                                printf("partial_list[%d][%d][%d] = %d\n", ID, q, index_record[q], crt_number);
+                                //printf("partial_list[%d][%d][%d] = %d\n", ID, q, index_record[q], crt_number);
                                 index_record[q]++;
                                 //pthread_mutex_unlock(&mutex);
                                 break;
@@ -89,6 +89,11 @@ void *thread_task(void *arg) {
     //bariera
     pthread_barrier_wait(&barrier);
 
+    // for (int i = 2; i < args->max_exp + 2; i++) {
+    //     for (int k = 0; k < (args->index_record_mat)[ID][args->id + 2]; k++) {
+    //         printf("partial_list[%d][%d][%d] = %d\n", ID, i, k, args->partial_lists[ID][i][k]);
+    //     }
+    // }
     //incepe reduce
     
     int *partial_reduced = calloc(MAX_SIZE, sizeof(int));
@@ -112,10 +117,13 @@ void *thread_task(void *arg) {
             }
         }
     }
+    for (int i = 0; i < count; i++) {
+        printf("partial_reduced[%d] = %d in thread %d\n", i, partial_reduced[i], ID);
+    }
     char out[NAME_SIZE];
     sprintf(out, "out%d.txt", args->id + 2);
     FILE* output = fopen(out, "w");
-    fprintf(output, "%d\n", count);
+    fprintf(output, "%d", count);
     fclose(output);
 
     
@@ -200,7 +208,7 @@ int main(int argc, char* argv[]) {
         args[i].max_exp = max_exp;
         args[i].num_threads = num_threads;
         args[i].partial_lists = (int***)partial_lists;
-        args->index_record_mat = index_record_mat;
+        args[i].index_record_mat = (int**)index_record_mat;
 
         r = pthread_create(&threads[i], NULL, thread_task, &args[i]);
         if (r) {

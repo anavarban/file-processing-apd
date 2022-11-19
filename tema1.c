@@ -48,25 +48,29 @@ void *thread_task(void *arg) {
                     for (int q = 2; q <= args->max_exp; q++) {
                         int mid = 0;
                         int upper_bound = (int)sqrt(crt_number);
-                        for (int k = 1; k <= upper_bound; k++) {
-                            mid = (sqrt(crt_number) + k) / 2;
-                            if (crt_number == (int)pow(k, q)) {
+                        for (int k = 1; k <= upper_bound; ) {
+                            mid = (upper_bound + k) / 2;
+                            if (crt_number == (int)pow(mid, q)) {
                                 //pthread_mutex_lock(&mutex);
                                 args->partial_lists[ID][q][index_record[q]] = crt_number;
                                 
                                 printf("partial_list[%d][%d][%d] = %d\n", ID, q, index_record[q], crt_number);
                                 index_record[q]++;
                                 //pthread_mutex_unlock(&mutex);
-                                
+                                break;
                             }
-                            if (crt_number < (int)pow(k, q)) {
+                            else if( k == upper_bound)
+                            {
+                                break;
+                            }
+                            if (crt_number < (int)pow(mid, q)) {
                                 //pthread_mutex_lock(&mutex);
-                                upper_bound = mid;
+                                upper_bound = mid - 1;
                                 //pthread_mutex_unlock(&mutex);
                             }
-                            if (crt_number > (int)pow(k, q)){
+                            if (crt_number > (int)pow(mid, q)){
                                 //pthread_mutex_lock(&mutex);
-                                k = mid;
+                                k = mid +1;
                                 //pthread_mutex_unlock(&mutex);
                             }
                         }
@@ -79,7 +83,7 @@ void *thread_task(void *arg) {
         }
     }
     //s-a terminat map
-    printf("partial_list[%d][%d][%d] = %d\n");
+    //printf("partial_list[%d][%d][%d] = %d\n");
     //bariera
     pthread_barrier_wait(&barrier);
 

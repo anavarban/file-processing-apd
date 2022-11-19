@@ -1,0 +1,37 @@
+Tema 1 - Algoritmi Paraleli si Distribuiti 2022
+Varban Ana-Maria, 336CB
+
+
+Pentru inceput, am vrut sa parsez fisierul cu numele fisierelor de prelucrat, astfel
+am salvat intr-un array de stringuri numele fisierelor input.
+
+Am determinat exponentul maxim pana la care se va face cautarea puterilor perfecte si
+numarul de threaduri, acesta din urma fiind reprezentat de maximul dintre nr. de mapperi
+si nr. de reduceri.
+
+Argumentele ce vor fi pasate functiei de thread includ:
+- un tablou bidimensional ce retine dimensiunea listelor partiale pentru fiecare mapper astfel:
+  index_record_map[i][j] = dimensiunea listei partiale pentru exponent j a mapperului i
+- un tablou tridimensional ce retine listele partiale:
+  partial_lists[i][j] = lista partiala pentru exponentul j a mapperului i
+- array-ul de stringuri ce retine numele fisierelor input
+- numarul de fisiere input, numarul de mapperi, numarul de threaduri, id-ul threadului,
+  exponentul maxim
+
+In functia de thread, daca threadul este mapper (threadurile mapper vor avea id-ul incepand
+cu 0 pana la nr_mapperi - 1), determin de care fisiere se va ocupa dupa metoda prezentata in lab1,
+dupa care prelucrez continutul fisierelor. 
+  Pentru a determina daca un numar este putere perfecta folosesc o abordare in stil cautare binara,
+  incercand sa gasesc un numar intre 1 si sqrt(numarul testat) care, ridicat la unul dintre exponenti,
+  este egal cu numarul testat. Daca acest numar este gasit, numarul de testat se va salva in lista 
+  partiala aferenta mapperului si exponentului curent.
+Sincronizarea threadurilor se realizeaza folosind o bariera, astfel incat se va astepta la aceasta pana
+ce s-a terminat operatia de map.
+In cadrul operatiei de reduce, threadul curent va retine o lista de valori gasite in listele partiale
+si un counter ce retine numarul de valori diferite. Acestea vor fi actualizate pe masura ce threadul 
+reducer parcurge listele partiale aferente indexului de care se ocupa.
+La finalul operatiei de reduce, threadul curent va afisa in fisierul output corespunzator rezultatul
+acesteia.
+(*asadar, dupa ce termina operatia map, mapperul va deveni si el reducer)
+
+La final, threadurilor li se da join si memoria este eliberata si fisierul de input este inchis.

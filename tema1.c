@@ -9,7 +9,6 @@
 #define MAX_SIZE 500000
 
 pthread_barrier_t barrier;
-pthread_mutex_t mutex;
 
 //structura pentru pasarea argumentelor functiei de thread
 typedef struct {
@@ -50,7 +49,6 @@ void *thread_task(void *arg) {
                 int crt_number;
                 fscanf(input, "%d", &crt_number);
                 if (crt_number >= 1) {
-                    
                     //logica pt verificare putere perfecta
                     //se bazeaza pe cautare binara
                     for (int q = 2; q <= args->max_exp; q++) {
@@ -59,21 +57,19 @@ void *thread_task(void *arg) {
                         for (int k = 1; k <= upper_bound; ) {
                             mid = (upper_bound + k) / 2;
                             if (crt_number == (int)pow(mid, q)) {
-                                //pthread_mutex_lock(&mutex);
                                 args->partial_lists[ID][q][index_record[q]] = crt_number;
                                 index_record[q]++;
-                                //pthread_mutex_unlock(&mutex);
                                 break;
                             }
                             else if( k == upper_bound)
                             {
                                 break;
                             }
-                            if (crt_number < (int)pow(mid, q)) {
+                            if (crt_number < (long long)pow(mid, q)) {
                                 upper_bound = mid - 1;
                             }
-                            if (crt_number > (int)pow(mid, q)){
-                                k = mid +1;
+                            if (crt_number > (long long)pow(mid, q)){
+                                k = mid + 1;
                             }
                         }
                     }
@@ -85,17 +81,9 @@ void *thread_task(void *arg) {
         }
     }
     //s-a terminat map
+
     //bariera, pentru ca toate threadurile mapper sa termine
     pthread_barrier_wait(&barrier);
-
-
-    //nu uita sa stergi!!!!
-    // for (int i = 2; i < args->max_exp + 2; i++) {
-    //     for (int k = 0; k < (args->index_record_mat)[ID][args->id + 2]; k++) {
-    //         printf("partial_list[%d][%d][%d] = %d\n", ID, i, k, args->partial_lists[ID][i][k]);
-    //     }
-    // }
-
 
     //incepe reduce
 
@@ -118,11 +106,6 @@ void *thread_task(void *arg) {
                 count++;
             }
         }
-    }
-
-    //nu uita sa stergi!!!
-    for (int i = 0; i < count; i++) {
-        printf("partial_reduced[%d] = %d in thread %d\n", i, partial_reduced[i], ID);
     }
 
     //afisam rezultatul reduce in fisierul de output aferent
@@ -198,7 +181,6 @@ int main(int argc, char* argv[]) {
 
     //initializare bariera
     pthread_barrier_init(&barrier, NULL, num_threads);
-    pthread_mutex_init(&mutex, NULL);
 
 
     Arguments args[num_threads];
@@ -256,7 +238,6 @@ int main(int argc, char* argv[]) {
     free(index_record_mat);
 
     pthread_barrier_destroy(&barrier);
-	pthread_mutex_destroy(&mutex);
     fclose(in);
 
 }
